@@ -1,32 +1,18 @@
 import tkinter
+import time
 from functools import partial
-from copy import copy, deepcopy
-window = tkinter.Tk()
-window.title("Sudoku")
-window.geometry("333x370")
-window.resizable(0,0)
-pixel = tkinter.PhotoImage(width=1, height=1)
-w, h = 9, 9
-buttonIdentities = [[0 for x in range(w)] for y in range(h)]
-label = tkinter.Label(window, text="Entry:")
-label.grid(column=0, row=10)
-entry = tkinter.Entry(window, width=4)
-entry.grid(row = 10, column = 1, pady = 2)
-randomBoard = [
-        [7, 8, 5, 4, 3, 9, 1, 2, 6],
-        [6, 1, 2, 8, 7, 5, 3, 4, 9],
-        [4, 9, 3, 6, 2, 1, 5, 7, 8],
-        [8, 5, 7, 9, 4, 3, 2, 6, 1],
-        [2, 6, 1, 7, 5, 8, 9, 3, 4],
-        [9, 3, 4, 1, 6, 2, 7, 8, 5],
-        [5, 7, 8, 3, 9, 4, 6, 1, 2],
-        [1, 2, 6, 5, 8, 7, 4, 9, 3],
-        [3, 4, 9, 2, 1, 6, 0, 0, 7]
-    ]
-solvedBoard = deepcopy(randomBoard)
+from copy import deepcopy
+
+
 def findEmpty(board):
     for i in range(len(board)):
          for j in range(len(board)):
+            if board[i][j] == 0:
+                return (i, j)
+    return None
+def findEmptyAuto():
+    for i in range(9):
+         for j in range(9):
             if board[i][j] == 0:
                 return (i, j)
     return None
@@ -66,6 +52,61 @@ def printBoard(board):
             else:
                 print(str(board[i][j]) + " ", end="")
 
+
+def checkVictory():
+    for i in range(9):
+        for j in range(9):
+            if(solvedBoard[i][j] != board[i][j]):
+                return False
+    return True
+
+def automatedValid(row, col, valueToCheck):
+
+    #check column
+    for i in range(len(board)):
+        if board[i][col] == valueToCheck and row != i:
+            return False
+
+    #check row
+    for j in range(len(board)):
+        if board[row][j] == valueToCheck and col != j:
+            return False
+
+    #check square
+
+    row = row // 3
+    col = col // 3
+    for i in range(row*3, row*3 + 3):
+        for j in range(col*3, col*3 +3):
+            if board[i][j] == valueToCheck and row != i and col != j:
+                return False
+
+    return True
+
+def clickedSquare(row, column):
+    buttonId = (buttonIdentities[row][column])
+    print(entry.get())
+    number = entry.get()
+    if(not(number.isnumeric())):
+        return
+    entry.delete(0,tkinter.END)
+    buttonId.configure(text = str(number), fg = "blue")
+    filledBoxes.append((row, column))
+
+def lockChoices(event):
+    for i in range(len(filledBoxes)):
+        row = filledBoxes[i][0]
+        column = filledBoxes[i][1]
+        buttonId = (buttonIdentities[row][column])
+        stringX = buttonId['text']
+        if(int(stringX) == solvedBoard[row][column]):
+            buttonId.configure(fg = "black", bg = "SystemButtonFace", state = "disable")
+            board[row][column] = int(stringX)
+        else:
+            buttonId.configure(bg = "red")
+    if (checkVictory()):
+        openVictoryScreen()
+
 def solve(board):
     find = findEmpty(board)
     if find:
@@ -81,39 +122,87 @@ def solve(board):
                 return True
             board[row][col] = 0
     return False
+
+def clearColors():
+    for i in range(len(board)):
+        for j in range(len(board)):
+            buttonId = buttonIdentities[i][j]
+            buttonId.configure(bg = "SystemButtonFace")
+
+def openVictoryScreen():
+    newWindow = tkinter.Toplevel(window)
+    newWindow.title("Victory Window")
+    newWindow.geometry("300x50")
+    victoryText = tkinter.Label(newWindow, text = "Congratulations, you won!").pack(side = 'top')
+def automatedSolve(_event=None):
+    clearColors()
+    find = findEmptyAuto()
+    if find:
+        row, col = find
+    else:
+        return True
+    buttonId = (buttonIdentities[row][col])
+    for i in range(1, 10):
+        if (automatedValid(row, col, i)):
+            buttonId.configure(text=str(i), fg="blue")
+            window.update()
+            board[row][col] = i
+            printBoard(board)
+            print()
+            #time.sleep(0.5)
+            if automatedSolve():
+                return True
+                openVictoryScreen()
+            buttonId.configure(bg="red")
+            window.update()
+            #time.sleep(0.5)
+            board[row][col] = 0
+            buttonId.configure(text = "0", bg = "SystemButtonFace", fg = "black")
+            #time.sleep(0.3)
+            window.update()
+    return False
+
+window = tkinter.Tk()
+window.title("Sudoku")
+window.geometry("333x370")
+window.resizable(0,0)
+pixel = tkinter.PhotoImage(width=1, height=1)
+w, h = 9, 9
+buttonIdentities = [[0 for x in range(w)] for y in range(h)]
+filledBoxes = []
+entryLabel = tkinter.Label(window, text="Entry")
+entryLabel.grid(column=0, row=10)
+entry = tkinter.Entry(window, width=4)
+window.bind('z', lockChoices)
+window.bind('q', automatedSolve)
+entry.grid(row = 10, column = 1, pady = 2)
+board = [
+        [7, 8, 0, 4, 0, 0, 1, 2, 0],
+        [6, 0, 0, 0, 7, 5, 0, 0, 9],
+        [0, 0, 0, 6, 0, 1, 0, 7, 8],
+        [0, 0, 7, 0, 4, 0, 2, 6, 0],
+        [0, 0, 1, 0, 5, 0, 9, 3, 0],
+        [9, 0, 4, 0, 6, 0, 0, 0, 5],
+        [0, 7, 0, 3, 0, 0, 0, 1, 2],
+        [1, 2, 0, 0, 0, 7, 4, 0, 0],
+        [0, 4, 9, 2, 0, 6, 0, 0, 7]
+    ]
+
+solvedBoard = deepcopy(board)
 solve(solvedBoard)
-def checkVictory():
-    for i in range(9):
-        for j in range(9):
-            if(solvedBoard[i][j] != randomBoard[i][j]):
-                print("row = ")
-                print(i)
-                print("column = ")
-                print(j)
-                print(solvedBoard[i][j])
-                print(randomBoard[i][j])
-                return False
-    return True
-def clickedSquare(row, column):
-    buttonId = (buttonIdentities[row][column])
-    print(entry.get())
-    number = entry.get()
-    if(not(number.isnumeric())):
-        return
-    randomBoard[column][row] = int(number)
-    printBoard(randomBoard)
-    entry.delete(0,tkinter.END)
-    buttonId.configure(text = str(number))
-    if(checkVictory()):
-        window.destroy()
-for i in range(9):
-    for j in range(9):
-        if(i%3 == 2 or j%3 == 2):
-            button = tkinter.Button(window, text = str(randomBoard[j][i]), image=pixel, width=25, height=25, compound="c", bd = 4, command = partial(clickedSquare, i, j))
+
+for i in range (9):
+    for j in range (9):
+        if(board[i][j] != 0):
+            button = tkinter.Button(window, text = str(board[i][j]), image=pixel, width=25, height=25, compound="c", relief = "groove", command = partial(clickedSquare, i, j), state = "disable")
         else:
-            button = tkinter.Button(window, text = str(randomBoard[j][i]), image=pixel, width=25, height=25, compound="c", command = partial(clickedSquare, i, j))
-        button.grid(column=i, row=j)
+            button = tkinter.Button(window, text = str(board[i][j]), image=pixel, width=25, height=25, compound="c", relief = "groove", command = partial(clickedSquare, i, j))
+        button.grid(column=j, row=i)
         buttonIdentities[i][j] = button
+        if (i % 3 == 2):
+            button.grid(column=j, row=i, pady=(0,7))
+        if(j % 3 == 2):
+            button.grid(column=j, row=i, padx=(0,7))
 window.mainloop()
 
 
