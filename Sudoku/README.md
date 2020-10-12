@@ -3,5 +3,5 @@ This is a python code that solves a Sudoku board, the code can be easily changed
 
 <h3>GuiSudoku</h3>
 Input a number in the Entry input window and then click on the cell you want to change(only where zeros are located).<br>
-Z will check the numbers inputted so far and show you the ones that are wrong.
+Z will check the numbers inputted so far and show you the ones that are wrong.<br>
 Q will start a step by step automated solver.
