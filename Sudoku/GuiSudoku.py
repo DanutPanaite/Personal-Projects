@@ -161,12 +161,51 @@ def automatedSolve(_event=None):
             #time.sleep(0.3)
             window.update()
     return False
-
+def startNewGame():
+    for i in range(9):
+        for j in range(9):
+            if (initialBoard[i][j] != 0):
+                button = tkinter.Button(window, text=str(initialBoard[i][j]), image=pixel, width=25, height=25, compound="c",
+                                        relief="groove", command=partial(clickedSquare, i, j), state="disable")
+            else:
+                button = tkinter.Button(window, text=str(initialBoard[i][j]), image=pixel, width=25, height=25, compound="c",
+                                        relief="groove", command=partial(clickedSquare, i, j))
+            button.grid(column=j, row=i)
+            buttonIdentities[i][j] = button
+            if (i % 3 == 2):
+                button.grid(column=j, row=i, pady=(0, 7))
+            if (j % 3 == 2):
+                button.grid(column=j, row=i, padx=(0, 7))
+def quitGame():
+    window.destroy()
+def openInstructions():
+    instructionWindow = tkinter.Toplevel(window)
+    instructionWindow.title("Instruction Window")
+    instructionWindow.geometry("400x80")
+    instruction0 = tkinter.Label(instructionWindow, text = "Fill in numbers 1-9 in different cells taking care that a number doesnt ").pack(side = "top")
+    instruction1 = tkinter.Label(instructionWindow, text = "repeat in the same row/column or in the same 3x3 grid.").pack()
+    instruction2 = tkinter.Label(instructionWindow, text = "Z = check if your inputted numbers are right").pack()
+    instruction3 = tkinter.Label(instructionWindow, text = "Q = activate the automated solver").pack()
 window = tkinter.Tk()
 window.title("Sudoku")
-window.geometry("333x370")
+window.geometry("333x400")
 window.resizable(0,0)
 pixel = tkinter.PhotoImage(width=1, height=1)
+
+menu = tkinter.Menu(window)
+window.config(menu = menu)
+
+fileMenu = tkinter.Menu(menu)
+menu.add_cascade(label = "File", menu = fileMenu)
+instructionMenu = tkinter.Menu(menu)
+menu.add_cascade(label = "Instructions", menu = instructionMenu)
+
+fileMenu.add_command(label = "New game", command = startNewGame)
+fileMenu.add_separator()
+fileMenu.add_command(label = "Quit", command = quitGame)
+
+instructionMenu.add_command(label = "How to play", command = openInstructions)
+
 w, h = 9, 9
 buttonIdentities = [[0 for x in range(w)] for y in range(h)]
 filledBoxes = []
@@ -175,8 +214,12 @@ entryLabel.grid(column=0, row=10)
 entry = tkinter.Entry(window, width=4)
 window.bind('z', lockChoices)
 window.bind('q', automatedSolve)
+
+
+
+
 entry.grid(row = 10, column = 1, pady = 2)
-board = [
+initialBoard = [
         [7, 8, 0, 4, 0, 0, 1, 2, 0],
         [6, 0, 0, 0, 7, 5, 0, 0, 9],
         [0, 0, 0, 6, 0, 1, 0, 7, 8],
@@ -187,7 +230,7 @@ board = [
         [1, 2, 0, 0, 0, 7, 4, 0, 0],
         [0, 4, 9, 2, 0, 6, 0, 0, 7]
     ]
-
+board = deepcopy(initialBoard)
 solvedBoard = deepcopy(board)
 solve(solvedBoard)
 
