@@ -4,18 +4,14 @@ from functools import partial
 from copy import deepcopy
 
 
+
 def findEmpty(board):
     for i in range(len(board)):
          for j in range(len(board)):
             if board[i][j] == 0:
                 return (i, j)
     return None
-def findEmptyAuto():
-    for i in range(9):
-         for j in range(9):
-            if board[i][j] == 0:
-                return (i, j)
-    return None
+
 def valid(board, row, col, valueToCheck):
 
     #check column
@@ -39,20 +35,6 @@ def valid(board, row, col, valueToCheck):
 
     return True
 
-def printBoard(board):
-    for i in range(len(board)):
-        if i % 3 == 0 and i != 0:
-            print("- - - - - - - - - - - - - -")
-        for j in range(len(board)):
-            if j % 3 == 0:
-                print(" | ",end="")
-
-            if j == 8:
-                print(board[i][j], end="\n")
-            else:
-                print(str(board[i][j]) + " ", end="")
-
-
 def checkVictory():
     for i in range(9):
         for j in range(9):
@@ -60,29 +42,7 @@ def checkVictory():
                 return False
     return True
 
-def automatedValid(row, col, valueToCheck):
-
-    #check column
-    for i in range(len(board)):
-        if board[i][col] == valueToCheck and row != i:
-            return False
-
-    #check row
-    for j in range(len(board)):
-        if board[row][j] == valueToCheck and col != j:
-            return False
-
-    #check square
-
-    row = row // 3
-    col = col // 3
-    for i in range(row*3, row*3 + 3):
-        for j in range(col*3, col*3 +3):
-            if board[i][j] == valueToCheck and row != i and col != j:
-                return False
-
-    return True
-
+#function for the buttons
 def clickedSquare(row, column):
     buttonId = (buttonIdentities[row][column])
     print(entry.get())
@@ -93,6 +53,7 @@ def clickedSquare(row, column):
     buttonId.configure(text = str(number), fg = "blue")
     filledBoxes.append((row, column))
 
+#compares inputted numbers with the solved board, if correct it locks them in, else they are highlighted in red
 def lockChoices(event):
     for i in range(len(filledBoxes)):
         row = filledBoxes[i][0]
@@ -107,6 +68,7 @@ def lockChoices(event):
     if (checkVictory()):
         openVictoryScreen()
 
+#this function is used to get a solved board of the initial one, to compare the numbers inputted by the user
 def solve(board):
     find = findEmpty(board)
     if find:
@@ -134,33 +96,34 @@ def openVictoryScreen():
     newWindow.title("Victory Window")
     newWindow.geometry("300x50")
     victoryText = tkinter.Label(newWindow, text = "Congratulations, you won!").pack(side = 'top')
+
+#solves the Sudoku board using Backtracking, the step by step process is shown in the game window
 def automatedSolve(_event=None):
     clearColors()
-    find = findEmptyAuto()
+    find = findEmpty(board)
     if find:
         row, col = find
     else:
         return True
     buttonId = (buttonIdentities[row][col])
     for i in range(1, 10):
-        if (automatedValid(row, col, i)):
+        if (valid(board, row, col, i)):
             buttonId.configure(text=str(i), fg="blue")
             window.update()
             board[row][col] = i
-            printBoard(board)
-            print()
-            #time.sleep(0.5)
+            time.sleep(0.3)
             if automatedSolve():
                 return True
                 openVictoryScreen()
             buttonId.configure(bg="red")
             window.update()
-            #time.sleep(0.5)
+            time.sleep(0.3)
             board[row][col] = 0
             buttonId.configure(text = "0", bg = "SystemButtonFace", fg = "black")
-            #time.sleep(0.3)
+            time.sleep(0.3)
             window.update()
     return False
+
 def startNewGame():
     for i in range(9):
         for j in range(9):
@@ -176,8 +139,10 @@ def startNewGame():
                 button.grid(column=j, row=i, pady=(0, 7))
             if (j % 3 == 2):
                 button.grid(column=j, row=i, padx=(0, 7))
+
 def quitGame():
     window.destroy()
+
 def openInstructions():
     instructionWindow = tkinter.Toplevel(window)
     instructionWindow.title("Instruction Window")
@@ -186,11 +151,14 @@ def openInstructions():
     instruction1 = tkinter.Label(instructionWindow, text = "repeat in the same row/column or in the same 3x3 grid.").pack()
     instruction2 = tkinter.Label(instructionWindow, text = "Z = check if your inputted numbers are right").pack()
     instruction3 = tkinter.Label(instructionWindow, text = "Q = activate the automated solver").pack()
+
+#Game window setup
 window = tkinter.Tk()
+pixel = tkinter.PhotoImage(width=1, height=1)
+
 window.title("Sudoku")
 window.geometry("333x400")
 window.resizable(0,0)
-pixel = tkinter.PhotoImage(width=1, height=1)
 
 menu = tkinter.Menu(window)
 window.config(menu = menu)
@@ -206,19 +174,18 @@ fileMenu.add_command(label = "Quit", command = quitGame)
 
 instructionMenu.add_command(label = "How to play", command = openInstructions)
 
-w, h = 9, 9
-buttonIdentities = [[0 for x in range(w)] for y in range(h)]
 filledBoxes = []
 entryLabel = tkinter.Label(window, text="Entry")
 entryLabel.grid(column=0, row=10)
 entry = tkinter.Entry(window, width=4)
 window.bind('z', lockChoices)
 window.bind('q', automatedSolve)
-
-
-
-
 entry.grid(row = 10, column = 1, pady = 2)
+
+#setting up an array for buttonId memorisation
+w, h = 9, 9
+buttonIdentities = [[0 for x in range(w)] for y in range(h)]
+
 initialBoard = [
         [7, 8, 0, 4, 0, 0, 1, 2, 0],
         [6, 0, 0, 0, 7, 5, 0, 0, 9],
@@ -230,10 +197,13 @@ initialBoard = [
         [1, 2, 0, 0, 0, 7, 4, 0, 0],
         [0, 4, 9, 2, 0, 6, 0, 0, 7]
     ]
+
+
 board = deepcopy(initialBoard)
 solvedBoard = deepcopy(board)
 solve(solvedBoard)
 
+#buttons setup
 for i in range (9):
     for j in range (9):
         if(board[i][j] != 0):
