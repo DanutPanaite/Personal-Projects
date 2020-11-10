@@ -30,9 +30,11 @@ with enough information.
 This script is a Draft Bot(or AI) for the game League of Legends. It uses the information fed to it manually(through a text file or such) and does
 drafting choices based on that. This is a completely biased Draft Bot that can only make drafts based on the information feeder's read and thoughts
 on the meta and the champion match-ups. The script will use an easy to follow order of priority as showcased here:<br>
+
 1. Damage composition - the bot will, at all times, draft in such a way that you will never have full AP or full AD compositions. It will use a
 MainDamageDealer(MDD) variable for every champ and it will choose to have at least one MDD from the minority side(be it AP or AD, usually AP), if it
 can't accomplish that, the bot will try to include 2 champions that aren't MDDs, but that will have split damage output(50-50).<br>
+
 2. Color theme - based on Nick "LS" De Cesare's draft philosophy(inspired from the popular card game Magic the Gathering), champions will be
 appointed colors(Red, Blue, Green, White, Black) and by having a simple defined color wheel(which color beats which), the bot will choose champs in
 such a way that they counter the enemies colors. At the same time the order in which champions will be chosen is highly reliant on the same colors
@@ -40,11 +42,13 @@ guide. Champions with a high number of colors can be picked early as they facili
 adapt to the enemy picks and still have a Color theme(1 or 2 main colors). To further expand on this idea I will provide an example: picking a
 champion that is only Red in nature early in the draft, will force the following picks to play as Red, even though they would be White, Green, with
 Red only in a small proportion, unable to pivot in the second draft phase can be fatal to a draft's/team's success.<br>
+
 3. Champion theme - this is a concept that works very well paired with the previous one, each champion will have a way they want to play the game,
 some can have multiple ones(usually White champions), the main idea is that we want to pick champions that fit with our theme, and we want our theme
 to be countering the enemy's theme. Let's say the first 2 champions picked by the enemy have a Dive theme, which means they want to come to us and
 kill us by being on top of us, now we must pivot to a composition that loves it when the enemy comes to them, something that likes to fight close to
 each other, something that can kite back and thrives when the enemy comes into them.<br>
+
 4. Lane match-ups - as for our final rule to follow, this is the most basic one, but the one that most amateurs and even professional players put
 a lot of value on, I fully believe that lane match-ups aren't as important as people make them seem. Lane match-ups translate into which champion
 beats which in a vacuum, and will provide early pressure for the team having better lanes. Which doesn't necessarily translate into better chances
