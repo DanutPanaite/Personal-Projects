@@ -19,7 +19,7 @@ is when a team would ban champions that directly counter their champions or thei
 4. Fourth phase(Pick phase) - Red team will start picking first, being able to pick one champ(R4), then it goes to Blue that is allowed to pick 2
 champs, then Red is allowed another pick, for a total of 5 champions in each team. <br>
 
-   <h3>Motivation:</h3><br>
+   <h3>Motivation:</h3>
 Having watched professional games a handful of times, we can notice that the players don't have a good understanding of the strategy that goes into
 draft, they usually pick what's the most powerful champion objectively speaking or comfort champions(things they play very well and love playing), and
 usually the Coach is in the same as the players, he does not impose his point of view enough, therefore I decided to try making a bot that will objectively
