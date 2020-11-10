@@ -1,1 +1,1 @@
-<h1> ~WIP </h1>
+<h1> League of Legends Draft Bot ~WIP </h1>
