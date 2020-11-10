@@ -1,0 +1,13 @@
+# depslib dependency file v1.0
+1604655946 source:c:\users\xtrem\desktop\what am i doing with my life part 5\draftingbot\main.cpp
+	<iostream>
+	<stdlib.h>
+	<string.h>
+	<fstream>
+	<algorithm>
+	<conio.h>
+	<windows.h>
+	<vector>
+	<tuple>
+	<time.h>
+
