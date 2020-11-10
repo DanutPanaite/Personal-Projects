@@ -1,6 +1,6 @@
 <h1> League of Legends Draft Bot ~WIP </h1>
  
-    The League of Legends draft simple explanation:
+   <h3>The League of Legends draft simple explanation:</h3><br>
 In League of Legends 2 teams of 5 players are fighting each other(the team on the left is the blue team and the other the red team) while
 controlling champs similar to Chess. The game has 156 unique champions implemented, as of the writing of this text, and in a tournament setting a champion can
 only exist in one team(Blind Pick allows for the same champion to be on different teams), champions are stronger or weaker based on the patch. The
@@ -19,14 +19,14 @@ is when a team would ban champions that directly counter their champions or thei
 4. Fourth phase(Pick phase) - Red team will start picking first, being able to pick one champ(R4), then it goes to Blue that is allowed to pick 2
 champs, then Red is allowed another pick, for a total of 5 champions in each team. <br>
 
-    <h3>Motivation:</h3><br>
+   <h3>Motivation:</h3><br>
 Having watched professional games a handful of times, we can notice that the players don't have a good understanding of the strategy that goes into
 draft, they usually pick what's the most powerful champion objectively speaking or comfort champions(things they play very well and love playing), and
 usually the Coach is in the same as the players, he does not impose his point of view enough, therefore I decided to try making a bot that will objectively
 draft a good composition every time. Since all information is visible in the draft at every point it allowsfor a bot to be able to adapt and draft properly 
 with enough information.
 
-    <h3>Introduction to the Draft Bot, the rules he will use:</h3><br>
+   <h3>Introduction to the Draft Bot, the rules he will use:</h3><br>
 This script is a Draft Bot(or AI) for the game League of Legends. It uses the information fed to it manually(through a text file or such) and does
 drafting choices based on that. This is a completely biased Draft Bot that can only make drafts based on the information feeder's read and thoughts
 on the meta and the champion match-ups. The script will use an easy to follow order of priority as showcased here:<br>
