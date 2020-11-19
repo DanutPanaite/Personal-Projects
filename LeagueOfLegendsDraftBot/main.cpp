@@ -14,7 +14,7 @@ using namespace std;
 /*
     The League of Legends draft simple explanation:
 In League of Legends 2 teams of 5 players are fighting each other(the team on the left is the blue team and the other the red team) while
-controlling champs similar to Chess. The game has 156 unique champions implemented, as of the writing of this text, and in a tournament setting a champion can
+controlling a champion. The game has 156 unique champions implemented, as of the writing of this text, and in a tournament setting a champion can
 only exist in one team(Blind Pick allows for the same champion to be on different teams), champions are stronger or weaker based on the patch. The
 tournament setting has multiple phases and I will briefly explain each one:
 1. First phase(Ban phase) - the two teams take turns banning a champion starting with the blue team, until each team has banned 3 champions for a
@@ -29,10 +29,10 @@ champs, then Red is allowed another pick, for a total of 5 champions in each tea
 
     Motivation:
 Having watched professional games a handful of times, we can notice that the players don't have a good understanding of the strategy that goes into
-draft, they usually pick what's the most powerful champion objectively speaking or comfort champions(things they play very well and love playing), and
-usually the Coach is in the same as the players, he does not impose his point of view enough, therefore I decided to try making a bot that will objectively
-draft a good composition every time. Since all information is visible in the draft at every point it allowsfor a bot to be able to adapt and draft properly 
-with enough information.
+draft usually picking what's the most powerful champion objectively speaking or comfort champions(things they play very well and love playing), and
+the Coach is in the same boat as the players, he does not impose his point of view, therefore I decided to try making a bot that will objectively
+draft a good composition every time, one that executed well can win games. Since all information is visible in the draft at every point it allows
+for a bot to be able to adapt and draft properly with enough information.
 
     Introduction to the Draft Bot, the rules he will use:
 This script is a Draft Bot(or AI) for the game League of Legends. It uses the information fed to it manually(through a text file or such) and does
@@ -82,12 +82,17 @@ unsigned globalPosition = 1;
 unsigned numberOfChamps = 0;
 unsigned maxNameSize = 0;
 unsigned numberOfCounters = 0;
+unsigned maxNumberOfColors = 5;
+unsigned maxNumberOfThemes = 3;
 unsigned noColorsNeeded = 3, noThemesNeeded = 3, noLanesNeeded = 2;
 string roleOrder[5] = {"jungle", "adcarry", "support", "top", "mid"};
-string compStructure[5];
+
 
 void resetGlobalVariables(){
-    string roleOrder[5] = {"jungle", "adcarry", "support", "top", "mid"};
+    string defaultRoleOrder[5] = {"jungle", "adcarry", "support", "top", "mid"};
+    for(unsigned i = 0; i < 5; i++){
+        roleOrder[i] = defaultRoleOrder[i];
+    }
 }
 struct counter{
     int championA, championB, level;
@@ -99,7 +104,7 @@ class champion{
     string name;
     string colors;
     string theme;   //can choose from Dive, FB(front to back), Split
-    string range;   //low(<500), medium (<600), high(>600)
+    string range;   //low(<=500), medium (500><600), high(>600)
     string lane;    //top, jungle, mid, ad carry, support
     bool MDD;
 public:
@@ -483,7 +488,7 @@ void draftLayout(int bluePicks[5], int redPicks[5], int blueBans[5], int redBans
 }
 
 
-//for making it pretty pretty :D
+//for making it pretty
 void Color(int color){
  SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), color);
 }
@@ -581,7 +586,7 @@ void checkLanes(int redPicks[5]){
     }
 }
 
-bool suitableBasedOnR1(int R1, string name){
+bool suitableBasedOnPick(int R1, string name){
     int champPos = getPosition(name);
     if(name == championVector[R1].getName()){
         return false;
@@ -590,7 +595,7 @@ bool suitableBasedOnR1(int R1, string name){
     vector<string> color;;
     split(championVector[champPos].getColors(), "/", color);
     split(championVector[champPos].getTheme(), "/", theme);
-    unsigned colorCount = 0, themeCount;
+    unsigned colorCount = 0, themeCount = 0, neededSoloColors = 2;
     if(color.size() > 2){
         for(unsigned i = 0; i < color.size()-1; i++){
             if(color[i] != "none"){
@@ -601,8 +606,7 @@ bool suitableBasedOnR1(int R1, string name){
             }
         }
     }
-    if(colorCount > 2){
-        cout<<name<<" e satisfacator1"<<endl;
+    if(colorCount > neededSoloColors){
         return true;
     }
     for(unsigned i = 0; i < theme.size()-1; i++){
@@ -611,7 +615,6 @@ bool suitableBasedOnR1(int R1, string name){
         }
     }
     if(colorCount > 1 && themeCount > 1){
-        cout<<name<<" e satisfacator2"<<endl;
         return true;
     }
     return false;
@@ -714,6 +717,7 @@ void firstAPhaseRed(champion* firstPhaseChampionPool, int firstPhaseNoChamps, in
         if(possiblePicks.empty()){   //choose something flexible in order of importance(changes with each patch)
             string lane;
             lane = roleOrder[0];
+            roleOrder[0] = "none";
             for(int i = 0; i < firstPhaseNoChamps; i++){
                 if(numberOfOccurences(firstPhaseChampionPool[i].getLane(), lane) >=1 ){
                     possiblePicks.push_back(make_tuple(0, getPosition(firstPhaseChampionPool[i].getName())));
@@ -736,6 +740,7 @@ void firstAPhaseRed(champion* firstPhaseChampionPool, int firstPhaseNoChamps, in
     for(int i = 0; i < 5; i++){
         if(roleOrder[i] != "none"){
             role = roleOrder[i];
+            roleOrder[i] = "none";
             break;
         }
     }
@@ -743,7 +748,7 @@ void firstAPhaseRed(champion* firstPhaseChampionPool, int firstPhaseNoChamps, in
         if(numberOfOccurences(firstPhaseChampionPool[i].getLane(), role) >=1 ){
             string champName = firstPhaseChampionPool[i].getName();
             cout<<champName<<endl;
-            bool suitable = suitableBasedOnR1(redPicks[0], champName);
+            bool suitable = suitableBasedOnPick(redPicks[0], champName);
             if(suitable && firstPhaseChampionPool[i].getName() != championVector[redPicks[0]].getName()){
                 cout<<champName<<" is suitable"<<endl;
                 possiblePicks.push_back(make_tuple(0, getPosition(firstPhaseChampionPool[i].getName())));
@@ -751,7 +756,7 @@ void firstAPhaseRed(champion* firstPhaseChampionPool, int firstPhaseNoChamps, in
         }
     }
     if(!possiblePicks.empty()){
-        unsigned random = 0;
+        unsigned random = rand() % possiblePicks.size();
         R2 = getName(get<1>(possiblePicks[random]));
         redPicks[1] = getPosition(R2);
         selfLaneVersatility = 5 - numberOfOccurences(championVector[redPicks[0]].getLane());
@@ -793,6 +798,21 @@ unsigned colorToNumber(string color){
     return -1;
 }
 
+string numberToColor(unsigned number){
+    if(number == 0)
+        return "blue";
+    if(number == 1)
+        return "white";
+    if(number == 2)
+        return "green";
+    if(number == 3)
+        return "black";
+    if(number == 4)
+        return "red";
+    return "none";
+
+}
+
 unsigned themeToNumber(string theme){
     if(theme == "fb")
         return 0;
@@ -801,6 +821,16 @@ unsigned themeToNumber(string theme){
     if(theme == "split")
         return 2;
     return -1;
+}
+
+string numberToTheme(unsigned number){
+    if(number == 0)
+        return "fb";
+    if(number == 1)
+        return "dive";
+    if(number == 2)
+        return "split";
+    return "none";
 }
 
 void vectorSorting(unsigned vectorLength, unsigned vect[5]){
@@ -814,20 +844,24 @@ void vectorSorting(unsigned vectorLength, unsigned vect[5]){
     }
 }
 
-void compAnalysis(int bluePicks[5]){
+void compAnalysis(int Picks[5], string compStructure[5], unsigned &numberOfColors, unsigned &numberOfThemes){
     vector<string> c1;
+    unsigned noOfFrequencyNeeded = 1;     /// if the color or theme frequency is lower than 2 then it's not something the enemy can pivot to so we ignore it
     unsigned noOfPicks = 0, colorFrequency[5] = {0}, themeFrequency[3] = {0};
     for(unsigned i = 0; i < 5; i++){
-        if(bluePicks[i] != -1)
+        if(Picks[i] != -1)
             noOfPicks++;
     }
+    if(noOfPicks < 3){
+        noOfFrequencyNeeded = 0;
+    }
     for(unsigned i = 0; i < noOfPicks; i++){
-        split(championVector[bluePicks[i]].getColors(), "/", c1);
+        split(championVector[Picks[i]].getColors(), "/", c1);
         for(unsigned j = 0; j < noOfPicks; j++){  //go through champions
-            if(championVector[bluePicks[j]].getName() != championVector[bluePicks[i]].getName()){
+            if(championVector[Picks[j]].getName() != championVector[Picks[i]].getName()){
                 for(unsigned k = 0; k < c1.size()-1; k++){
                     if(c1[k] != "none"){
-                        if(numberOfOccurences(championVector[bluePicks[j]].getColors(), c1[k]) > 0){
+                        if(numberOfOccurences(championVector[Picks[j]].getColors(), c1[k]) > 0){
                              colorFrequency[colorToNumber(c1[k])]++;
                         }
                     }
@@ -835,12 +869,12 @@ void compAnalysis(int bluePicks[5]){
             }
         }
         c1.clear();
-        split(championVector[bluePicks[i]].getTheme(), "/", c1);
+        split(championVector[Picks[i]].getTheme(), "/", c1);
         for(unsigned j = 0; j < noOfPicks; j++){  //go through champions
-            if(championVector[bluePicks[j]].getName() != championVector[bluePicks[i]].getName()){
+            if(championVector[Picks[j]].getName() != championVector[Picks[i]].getName()){
                 for(unsigned k = 0; k < c1.size()-1; k++){
                     if(c1[k] != "none"){
-                        if(numberOfOccurences(championVector[bluePicks[j]].getTheme(), c1[k]) > 0){
+                        if(numberOfOccurences(championVector[Picks[j]].getTheme(), c1[k]) > 0){
                              themeFrequency[themeToNumber(c1[k])]++;
                         }
                     }
@@ -848,19 +882,99 @@ void compAnalysis(int bluePicks[5]){
             }
         }
     }
-    //vectorSorting(5, colorFrequency);
-    //vectorSorting(3, themeFrequency);
-    for(int k = 0; k < 5; k++)
+    //I need to cut in half the values because it counts champions twice A -> B and B -> A
+    for(unsigned k = 0; k < maxNumberOfColors; k++)
         colorFrequency[k]/= 2;
-    for(int k = 0; k < 3; k++)
+    for(unsigned k = 0; k < maxNumberOfThemes; k++)
         themeFrequency[k]/= 2;
-    for(int i = 0; i < 5; i++)
+    for(unsigned i = 0; i < 5; i++)
         cout<<colorFrequency[i]<<" ";
     cout<<endl;
-    for(int i = 0; i < 3; i++)
+    for(unsigned i = 0; i < 3; i++)
         cout<<themeFrequency[i]<<" ";
     cout<<endl;
-
+    ///i need 2 maximum values for theme, and 3 for colors
+    unsigned max1 = 0, max2 = 0, max3 = 0;
+    for(unsigned i = 0; i < maxNumberOfColors; i++){
+        if(colorFrequency[i] > max1){
+            max3 = max2;
+            max2 = max1;
+            max1 = colorFrequency[i];
+        }
+        else{
+            if(colorFrequency[i] > max2){
+                max3 = max2;
+                max2 = colorFrequency[i];
+            }
+            else if(colorFrequency[i] > max3)
+                    max3 = colorFrequency[i];
+        }
+    }
+    ///now I go through the vector and modify the compStructure with the colors
+    unsigned k = 0;
+    for(unsigned i = 0; i < maxNumberOfColors && k < 3; i++){
+        if(k==0){
+            if(colorFrequency[i] == max1 && max1 >= noOfFrequencyNeeded){
+                compStructure[k] = numberToColor(i);
+                k++;
+            }
+        }
+        else if(k == 1){
+            if(colorFrequency[i] == max2 && max2 >= noOfFrequencyNeeded){
+                compStructure[k] = numberToColor(i);
+                k++;
+            }
+        }
+        else{
+            if(colorFrequency[i] == max3 && max3 >= noOfFrequencyNeeded){
+                compStructure[k] = numberToColor(i);
+                k++;
+            }
+        }
+    }
+    ///if i didn't have enough suitable colors, i fill the open spaces with "none"
+    if(k != 3){
+        for(; k < 3; k++){
+            compStructure[k] = "none";
+            numberOfColors++;
+        }
+    }
+    numberOfColors = 3 - numberOfColors;
+    //do the same thing for themes
+    max1 = 0; max2 = 0;
+    for(unsigned i = 0; i < maxNumberOfThemes; i++){
+        if(themeFrequency[i] > max1){
+            max2 = max1;
+            max1 = themeFrequency[i];
+        }
+        else if(themeFrequency[i] > max2 && max2 >= noOfFrequencyNeeded)
+            max2 = themeFrequency[i];
+    }
+    ///modify the compStructure with the themes
+    for(unsigned i = 0; i < maxNumberOfThemes && k < 5; i++){
+        if(k == 3){
+            cout<<"ThmeFrq "<<themeFrequency[i]<<" noOfFRq "<<noOfFrequencyNeeded<<" max1 "<<max1<<endl;
+            if(themeFrequency[i] == max1 && max1 >= noOfFrequencyNeeded){
+                compStructure[k] = numberToTheme(i);
+                k++;
+            }
+        }
+        else{
+            if(themeFrequency[i] == max2 && max2 >= noOfFrequencyNeeded){
+                compStructure[k] = numberToTheme(i);
+                k++;
+            }
+        }
+    }
+    if(k != 5)
+        for( ;k<5; k++){
+            compStructure[k] = "none";
+            numberOfThemes++;
+        }
+    numberOfThemes = 2 - numberOfThemes;
+    for(unsigned i = 0; i < 5; i ++)
+        cout<<compStructure[i]<< " ";
+    cout<<endl;
 }
 
 void firstBPhaseRed(champion* firstPhaseChampionPool, int firstPhaseNoChamps, int bluePicks[5], int redPicks[5], int redBans[5], int blueBans[5]){
@@ -868,7 +982,8 @@ void firstBPhaseRed(champion* firstPhaseChampionPool, int firstPhaseNoChamps, in
     champion* firstPhaseBChampionPool;
     int firstPhaseBNoChamps = 0;
     int colorVersatility, themeVersatility, laneVersatility;
-
+    string compStructure[5], myCompStructure[5], champName, lane, R3 ;               ///the variable will follow the following structure "color,"color","color","theme","theme"
+    unsigned numberOfThemes = 0, numberOfColors = 0, myThemes = 0, myColors = 0;
     for(int i = 0; i < firstPhaseNoChamps; i++){
         colorVersatility = 5 - numberOfOccurences(firstPhaseChampionPool[i].getColors());
         themeVersatility = 3 - numberOfOccurences(firstPhaseChampionPool[i].getTheme());
@@ -905,14 +1020,186 @@ void firstBPhaseRed(champion* firstPhaseChampionPool, int firstPhaseNoChamps, in
             }
         }
     }
-    compAnalysis(bluePicks);
+    compAnalysis(bluePicks, compStructure, numberOfColors, numberOfThemes);
+    vector<tuple<int, int>> possiblePicks;
+    for(int i = 0; i < 5; i++){
+        if(roleOrder[i] != "none"){
+            lane = roleOrder[i];
+            roleOrder[i] = "none";
+            break;
+        }
+    }
+    ///now the program knows their comp colors/themes and we try to find a weak link to attack while keeping ourselves open to pivoting
+    cout<<"NumberOFThemes"<<numberOfThemes<<endl;
+    compAnalysis(redPicks, myCompStructure, myColors, myThemes);
+    if(numberOfThemes == 1){ ///if this happens and we can counter the theme well, we force the opponent to draft off theme or draft a losing theme
+        if(compStructure[3] == "dive"){
+            ///then we want to pivot into fb hard IF we can, we should be able to
+            if(myCompStructure[3] == "fb" || myCompStructure[4] == "fb"){
+                ///then search for a champion with the wanted theme, on the wanted role, and hopefully a lane counter if possible
+                for(int i = 0; i < firstPhaseBNoChamps; i++){
+                    if(numberOfOccurences(firstPhaseBChampionPool[i].getLane(), lane) >=1 ){
+                        if(numberOfOccurences(firstPhaseBChampionPool[i].getTheme(), "fb") >= 1){
+                            string champName = firstPhaseBChampionPool[i].getName();
+                            cout<<champName<<endl;
+                            /// use the myCompStructure to determine if the champion is suitable based only on colors
+                            unsigned noMatches = 0;
+                            for(unsigned k = 0; k < 3; k++){
+                                if(numberOfOccurences(firstPhaseBChampionPool[k].getColors(), myCompStructure[k]) > 0){
+                                    noMatches++;
+                                }
+                            }
+                            bool suitable = false;
+                            if(noMatches > 1){ ///we want at least 2 colors to match
+                                suitable = true;
+                            }
+                            if(suitable){
+                                cout<<champName<<" is suitable"<<endl;
+                                possiblePicks.push_back(make_tuple(0, getPosition(champName)));
+                            }
+                        }
+                    }
+                }
+                if(!possiblePicks.empty()){
+                    unsigned random = rand() % possiblePicks.size();
+                    R3 = getName(get<1>(possiblePicks[random]));
+                    cout<<"R3 este"<<R3<<endl;
+                    redPicks[2] = getPosition(R3);
+                    checkLanes(redPicks);
+                }
+            }
+        }
+        if(compStructure[3] == "fb"){
+                ///we go towards fb still, trying to outdraft their fb theme comp, if impossible, during R5 we pivot to a split
+                cout<<"Im here in fb"<<endl;
+                if(myCompStructure[3] == "fb" || myCompStructure[4] == "fb"){
+                    ///then search for a champion with the wanted theme, on the wanted role, and hopefully a lane counter if possible
+                    for(int i = 0; i < firstPhaseBNoChamps; i++){
+                        if(numberOfOccurences(firstPhaseBChampionPool[i].getLane(), lane) >=1 ){
+                            if(numberOfOccurences(firstPhaseBChampionPool[i].getTheme(), "fb") >= 1){
+                                champName = firstPhaseBChampionPool[i].getName();
+                                /// use the myCompStructure to determine if the champion is suitable based only on colors
+                                unsigned noMatches = 0;
+                                for(unsigned k = 0; k < 3; k++){
+                                    if(numberOfOccurences(firstPhaseBChampionPool[i].getColors(), myCompStructure[k]) > 0){
+                                        noMatches++;
+                                    }
+                                }
+                                bool suitable = false;
+                                if(noMatches > 1){ ///we want at least 2 colors to match
+                                    suitable = true;
+                                }
+                                if(suitable){
+                                    cout<<champName<<" is suitable"<<endl;
+                                    possiblePicks.push_back(make_tuple(0, getPosition(champName)));
+                                }
+                            }
+                        }
+                    }
+                    if(!possiblePicks.empty()){
+                        unsigned random = rand() % possiblePicks.size();
+                        R3 = getName(get<1>(possiblePicks[random]));
+                        cout<<R3<<endl;
+                        redPicks[2] = getPosition(R3);
+                        checkLanes(redPicks);
+                    }
+                }
+        }
+        if(compStructure[3] == "split"){
+            ///then we want to pivot into dive hard IF we can
+            if(myCompStructure[3] == "dive" || myCompStructure[4] == "dive"){
+                ///then search for a champion with the wanted theme, on the wanted role, and hopefully a lane counter if possible
+                for(int i = 0; i < firstPhaseBNoChamps; i++){
+                    if(numberOfOccurences(firstPhaseBChampionPool[i].getLane(), lane) >=1 ){
+                        if(numberOfOccurences(firstPhaseBChampionPool[i].getTheme(), "dive") >= 1){
+                            cout<<champName<<endl;
+                            /// use the myCompStructure to determine if the champion is suitable based only on colors
+                            unsigned noMatches = 0;
+                            for(unsigned k = 0; k < 3; k++){
+                                if(numberOfOccurences(firstPhaseBChampionPool[k].getColors(), myCompStructure[k]) > 0){
+                                    noMatches++;
+                                }
+                            }
+                            bool suitable = false;
+                            if(noMatches > 1){ ///we want at least 2 colors to match
+                                suitable = true;
+                            }
+                            if(suitable){
+                                cout<<champName<<" is suitable"<<endl;
+                                possiblePicks.push_back(make_tuple(0, getPosition(champName)));
+                            }
+                        }
+                    }
+                }
+                if(!possiblePicks.empty()){
+                    unsigned random = rand() % possiblePicks.size();
+                    R3 = getName(get<1>(possiblePicks[random]));
+                    cout<<"R3 este"<<R3<<endl;
+                    redPicks[2] = getPosition(R3);
+                    checkLanes(redPicks);
+                }
+            }
+        }
+    }
+    else{   ///need to add more rules later
+        for(int i = 0; i < firstPhaseBNoChamps; i++){
+            if(numberOfOccurences(firstPhaseBChampionPool[i].getLane(), lane) > 0){
+                possiblePicks.push_back(make_tuple(0, getPosition(champName)));
+            }
+        }
+        if(!possiblePicks.empty()){
+            unsigned random = rand() % possiblePicks.size();
+            R3 = getName(get<1>(possiblePicks[random]));
+            cout<<"R3 este"<<R3<<endl;
+            redPicks[2] = getPosition(R3);
+        }
+    }
 }
+
+void R4Pick(champion* secondPhaseChampionPool, int secondPhaseNoChamps, int bluePicks[5], int redPicks[5], int redBans[5], int blueBans[5]){
+    string compStructure[5], myCompStructure[5], champName;
+    string R4, lane;
+    unsigned myThemes = 0, myColors = 0, numberOfColors = 0, numberOfThemes = 0;
+    vector<tuple<int, int>> possiblePicks;
+    for(int i = 0; i < 5; i++){
+        if(roleOrder[i] != "none"){
+            lane = roleOrder[i];
+            roleOrder[i] = "none";
+            break;
+        }
+    }
+    compAnalysis(bluePicks, compStructure, numberOfColors, numberOfThemes);
+    compAnalysis(redPicks, myCompStructure, myColors, myThemes);
+
+    //R4 picking
+    //add more rules
+    cout<<"Lane needed"<<lane<<endl;
+    for(int i = 0; i < secondPhaseNoChamps; i++){
+        cout<<secondPhaseChampionPool[i]<<endl;
+    }
+    for(int i = 0; i < secondPhaseNoChamps; i++){
+            cout<<"am intrat in for"<<endl;
+            if(numberOfOccurences(secondPhaseChampionPool[i].getLane(), lane) > 0){
+                champName = secondPhaseChampionPool[i].getName();
+                cout<<champName<<endl;
+                possiblePicks.push_back(make_tuple(0, getPosition(champName)));
+            }
+        }
+        if(!possiblePicks.empty()){
+            unsigned random = rand() % possiblePicks.size();
+            R4 = getName(get<1>(possiblePicks[random]));
+            cout<<"R4 este"<<R4<<endl;
+            redPicks[3] = getPosition(R4);
+        }
+}
+
 
 void draftSimulationRed(){
     champion* intermediatePool;
+    champion* secondPhaseChampionPool;
     string championName;
-    unsigned firstPhaseNoChamps = 0, intermediateNumberOfChamps = 0, colorVersatility = 0, themeVersatility = 0, laneVersatility = 0;
-    int bluePicks[5], redPicks[5], redBans[5], blueBans[5];
+    unsigned firstPhaseNoChamps = 0, intermediateNumberOfChamps = 0, colorVersatility = 0, themeVersatility = 0, laneVersatility = 0, secondPhaseNoChamps = 0;
+    int bluePicks[5], redPicks[5], redBans[5], blueBans[5], champPos;
     for(int i = 0 ; i < 5; i ++ ){
         bluePicks[i] = -1;
         redPicks[i] = -1;
@@ -1002,32 +1289,97 @@ void draftSimulationRed(){
             //verify if banned or already picked
             bluePicks[i+1] = getPosition(championName);
             firstBPhaseRed(firstPhaseChampionPool, firstPhaseNoChamps, bluePicks, redPicks, redBans, blueBans);
-            //draftLayout(bluePicks, redPicks, blueBans, redBans);
+            draftLayout(bluePicks, redPicks, blueBans, redBans);
         }
     }
-    //draftLayout(bluePicks, redPicks, blueBans, redBans);
 
-}
-
-void draftSimulation(){
-    //int bluePicks[5], redPicks[5];
-    //string side;
-
-    //choosing for what side the bot drafts red/blue
-    /*
-    while(1){
-        cout<<"Choose on which side(red/blue) the bot is on: ";
-        cin>>side
-        if(stringLower(side) != "red" && stringLower(side) != "blue"){
-            cout<<"Wrong choice, try red or blue."<<endl;
+    //second ban phase
+    for(int i = 6; i < 10; i++){
+        if(i % 2 == 0){
+            cout<<"Input blue side ban number "<<i/2+1<<": ";
+            cin>>championName;
+            champPos = getPosition(championName);
+            blueBans[i/2] = champPos;
         }
         else{
-            break;
+            cout<<"Input red side ban number "<<i/2+1<<": ";
+            cin>>championName;
+            champPos = getPosition(championName);
+            redBans[i/2] = champPos;
         }
     }
-    */
 
+    for(int i = 0; i < numberOfChamps; i++){
+        bool alreadyPicked = false;
+        for(int j = 0; j < 5; j++){
+            if(bluePicks[j] == getPosition(championVector[i].getName()) || redPicks[j] == getPosition(championVector[i].getName()) || blueBans[j] == getPosition(championVector[i].getName()) || redBans[j] == getPosition(championVector[i].getName())){
+                    alreadyPicked = true;
+                    break;
+            }
+        }
+        if(!alreadyPicked){
+            secondPhaseNoChamps++;
+        }
+    }
+    secondPhaseChampionPool = new champion[secondPhaseNoChamps];
+    for(int i = 0, count = 0; i < numberOfChamps; i++){
+        bool alreadyPicked = false;
+        for(int j = 0; j < 5; j++){
+            if(bluePicks[j] == getPosition(championVector[i].getName()) || redPicks[j] == getPosition(championVector[i].getName()) || blueBans[j] == getPosition(championVector[i].getName()) || redBans[j] == getPosition(championVector[i].getName())){
+                    alreadyPicked = true;
+                    break;
+            }
+        }
+        if(!alreadyPicked){
+            secondPhaseChampionPool[count] = championVector[i];
+            count++;
+        }
+    }
+    draftLayout(bluePicks, redPicks, blueBans, redBans);
+    R4Pick(secondPhaseChampionPool, secondPhaseNoChamps, bluePicks, redPicks, redBans, blueBans);
+    draftLayout(bluePicks, redPicks, blueBans, redBans);
+    delete[] secondPhaseChampionPool;
+    // ai ramas aici-----------------------------------------------------------------------------------
+    secondPhaseNoChamps = 0;
+    for(int i = 3; i < 5; i++){
+        cout<<"Input B"<<i+1<<" champion: ";
+        cin>>championName;
+        //verify if banned or already picked
+        bluePicks[i] = getPosition(championName);
+    }
+    draftLayout(bluePicks, redPicks, blueBans, redBans);
+    for(int i = 0; i < numberOfChamps; i++){
+        bool alreadyPicked = false;
+        for(int j = 0; j < 5; j++){
+            if(bluePicks[j] == getPosition(championVector[i].getName()) || redPicks[j] == getPosition(championVector[i].getName()) || blueBans[j] == getPosition(championVector[i].getName()) || redBans[j] == getPosition(championVector[i].getName())){
+                    alreadyPicked = true;
+                    break;
+            }
+        }
+        if(!alreadyPicked){
+            secondPhaseNoChamps++;
+        }
+    }
+    secondPhaseChampionPool = new champion[secondPhaseNoChamps];
+    for(int i = 0, count = 0; i < numberOfChamps; i++){
+        bool alreadyPicked = false;
+        for(int j = 0; j < 5; j++){
+            if(bluePicks[j] == getPosition(championVector[i].getName()) || redPicks[j] == getPosition(championVector[i].getName()) || blueBans[j] == getPosition(championVector[i].getName()) || redBans[j] == getPosition(championVector[i].getName())){
+                    alreadyPicked = true;
+                    break;
+            }
+        }
+        if(!alreadyPicked){
+            secondPhaseChampionPool[count] = championVector[i];
+            count++;
+        }
+    }
+    for(int i = 0; i < secondPhaseNoChamps; i++){
+        cout<<secondPhaseChampionPool[i]<<endl;
+    }
+    //R5Pick(secondPhaseChampionPool, secondPhaseNoChamps, bluePicks, redPicks, redBans, blueBans);
 }
+
 
 int main()
 {
@@ -1120,6 +1472,7 @@ int main()
             if(stringLower(draftSide) == "red"){
                     draftSimulationRed();
             }
+            resetGlobalVariables();
         }
         if (option==4)
         {
@@ -1135,7 +1488,6 @@ int main()
             cout<<"\nInvalid action\n";
         }
         cout<<"\n";
-        resetGlobalVariables();
         system("pause"); ///Pauza - Press any key to continue...
         system("cls");   ///Sterge continutul curent al consolei
 
