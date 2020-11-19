@@ -9,6 +9,10 @@
 #include <tuple>
 #include <time.h>
 
+/*
+Draft works on League of Legends patch 10.19
+*/
+
 using namespace std;
 
 
