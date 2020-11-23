@@ -1,5 +1,5 @@
 <h1> League of Legends Draft Bot ~WIP </h1>
- 
+ <h2>~only for League Patch 10.19~</h2>
    <h3>The League of Legends draft simple explanation:</h3><br>
 In League of Legends 2 teams of 5 players are fighting each other(the team on the left is the blue team and the other the red team) while
 controlling champs similar to Chess. The game has 156 unique champions implemented, as of the writing of this text, and in a tournament setting a champion can
@@ -53,3 +53,6 @@ each other, something that can kite back and thrives when the enemy comes into t
 a lot of value on, I fully believe that lane match-ups aren't as important as people make them seem. Lane match-ups translate into which champion
 beats which in a vacuum, and will provide early pressure for the team having better lanes. Which doesn't necessarily translate into better chances
 of winning, it's only a problem of adapting to the lanes.<br>
+
+<h2>IMPORTANT</h2>
+The bot will not take into account flexable champions, each champion can only go to one lane for the sake of a better draft.
