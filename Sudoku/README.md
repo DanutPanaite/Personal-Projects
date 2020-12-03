@@ -6,4 +6,4 @@ Input a number in the Entry input window and then click on the cell you want to 
 Z will check the numbers inputted so far and show you the ones that are wrong.<br>
 Q will start a step by step automated solver.
 
-[Video demonstration](https://youtu.be/MNrg_hs81lo)
+[Video demonstration](https://youtu.be/wOwg0TXVI18)
