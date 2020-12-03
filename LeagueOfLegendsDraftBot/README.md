@@ -56,3 +56,5 @@ of winning, it's only a problem of adapting to the lanes.<br>
 
 <h2>IMPORTANT</h2>
 The bot will not take into account flexable champions, each champion can only go to one lane for the sake of a better draft.
+
+[Video demonstration](https://youtu.be/61cHxin_dqM)
